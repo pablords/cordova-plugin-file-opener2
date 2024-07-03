@@ -50,11 +50,12 @@ public class FileOpener2 extends CordovaPlugin {
 	 * Executes the request and returns a boolean.
 	 *
 	 * @param action
-	 *            The action to execute.
+	 *                        The action to execute.
 	 * @param args
-	 *            JSONArry of arguments for the plugin.
+	 *                        JSONArry of arguments for the plugin.
 	 * @param callbackContext
-	 *            The callback context used when calling back into JavaScript.
+	 *                        The callback context used when calling back into
+	 *                        JavaScript.
 	 * @return boolean.
 	 */
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -62,27 +63,23 @@ public class FileOpener2 extends CordovaPlugin {
 			String fileUrl = args.getString(0);
 			String contentType = args.getString(1);
 			Boolean openWithDefault = true;
-			if(args.length() > 2){
+			if (args.length() > 2) {
 				openWithDefault = args.getBoolean(2);
 			}
 			this._open(fileUrl, contentType, openWithDefault, callbackContext);
-		}
-		else if (action.equals("uninstall")) {
+		} else if (action.equals("uninstall")) {
 			this._uninstall(args.getString(0), callbackContext);
-		}
-		else if (action.equals("appIsInstalled")) {
+		} else if (action.equals("appIsInstalled")) {
 			JSONObject successObj = new JSONObject();
 			if (this._appIsInstalled(args.getString(0))) {
 				successObj.put("status", PluginResult.Status.OK.ordinal());
 				successObj.put("message", "Installed");
-			}
-			else {
+			} else {
 				successObj.put("status", PluginResult.Status.NO_RESULT.ordinal());
 				successObj.put("message", "Not installed");
 			}
 			callbackContext.success(successObj);
-		}
-		else {
+		} else {
 			JSONObject errorObj = new JSONObject();
 			errorObj.put("status", PluginResult.Status.INVALID_ACTION.ordinal());
 			errorObj.put("message", "Invalid action");
@@ -91,7 +88,8 @@ public class FileOpener2 extends CordovaPlugin {
 		return true;
 	}
 
-	private void _open(String fileArg, String contentType, Boolean openWithDefault, CallbackContext callbackContext) throws JSONException {
+	private void _open(String fileArg, String contentType, Boolean openWithDefault, CallbackContext callbackContext)
+			throws JSONException {
 		String fileName = "";
 		try {
 			CordovaResourceApi resourceApi = webView.getResourceApi();
@@ -104,42 +102,53 @@ public class FileOpener2 extends CordovaPlugin {
 		if (file.exists()) {
 			try {
 				if (contentType == null || contentType.trim().equals("")) {
-				    contentType = _getMimeType(fileName);
+					contentType = _getMimeType(fileName);
 				}
 
 				Intent intent;
-				if (contentType.equals("application/vnd.android.package-archive")) {
-					// https://stackoverflow.com/questions/9637629/can-we-install-an-apk-from-a-contentprovider/9672282#9672282
-					intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-					Uri path;
-					if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-						path = Uri.fromFile(file);
-					} else {
-						Context context = cordova.getActivity().getApplicationContext();
-						path = FileProvider.getUriForFile(context, cordova.getActivity().getPackageName() + ".fileOpener2.provider", file);
-					}
-					intent.setDataAndType(path, contentType);
-					intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+				// if (contentType.equals("application/vnd.android.package-archive")) {
+				// //
+				// https://stackoverflow.com/questions/9637629/can-we-install-an-apk-from-a-contentprovider/9672282#9672282
+				// intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+				// Uri path;
+				// if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+				// path = Uri.fromFile(file);
+				// } else {
+				// Context context = cordova.getActivity().getApplicationContext();
+				// path = FileProvider.getUriForFile(context,
+				// cordova.getActivity().getPackageName() + ".fileOpener2.provider", file);
+				// }
+				// intent.setDataAndType(path, contentType);
+				// intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
+				// Intent.FLAG_ACTIVITY_NEW_TASK);
 
-				} else {
-					intent = new Intent(Intent.ACTION_VIEW);
-					Context context = cordova.getActivity().getApplicationContext();
-					Uri path = FileProvider.getUriForFile(context, cordova.getActivity().getPackageName() + ".fileOpener2.provider", file);
-					intent.setDataAndType(path, contentType);
-					intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				// } else {
+				// intent = new Intent(Intent.ACTION_VIEW);
+				// Context context = cordova.getActivity().getApplicationContext();
+				// Uri path = FileProvider.getUriForFile(context,
+				// cordova.getActivity().getPackageName() + ".fileOpener2.provider", file);
+				// intent.setDataAndType(path, contentType);
+				// intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
+				// Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-				}
+				// }
+
+				intent = new Intent(Intent.ACTION_VIEW);
+				Context context = cordova.getActivity().getApplicationContext();
+				Uri path = FileProvider.getUriForFile(context, cordova.getActivity().getPackageName() + ".fileOpener2.provider", file);
+				intent.setDataAndType(path, contentType);
+				intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
 				/*
 				 * @see
-				 * http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
+				 * http://stackoverflow.com/questions/14321376/open-an-activity-from-a-
+				 * cordovaplugin
 				 */
-				 if(openWithDefault){
-					 cordova.getActivity().startActivity(intent);
-				 }
-				 else{
-					 cordova.getActivity().startActivity(Intent.createChooser(intent, "Open File in..."));
-				 }
+				if (openWithDefault) {
+					cordova.getActivity().startActivity(intent);
+				} else {
+					cordova.getActivity().startActivity(Intent.createChooser(intent, "Open File in..."));
+				}
 
 				callbackContext.success();
 			} catch (android.content.ActivityNotFoundException e) {
@@ -157,15 +166,15 @@ public class FileOpener2 extends CordovaPlugin {
 	}
 
 	private String _getMimeType(String url) {
-	    String mimeType = "*/*";
-	    int extensionIndex = url.lastIndexOf('.');
-	    if (extensionIndex > 0) {
-		String extMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(url.substring(extensionIndex+1));
-		if (extMimeType != null) {
-		    mimeType = extMimeType;
+		String mimeType = "*/*";
+		int extensionIndex = url.lastIndexOf('.');
+		if (extensionIndex > 0) {
+			String extMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(url.substring(extensionIndex + 1));
+			if (extMimeType != null) {
+				mimeType = extMimeType;
+			}
 		}
-	    }
-	    return mimeType;
+		return mimeType;
 	}
 
 	private void _uninstall(String packageId, CallbackContext callbackContext) throws JSONException {
@@ -174,8 +183,7 @@ public class FileOpener2 extends CordovaPlugin {
 			intent.setData(Uri.parse("package:" + packageId));
 			cordova.getActivity().startActivity(intent);
 			callbackContext.success();
-		}
-		else {
+		} else {
 			JSONObject errorObj = new JSONObject();
 			errorObj.put("status", PluginResult.Status.ERROR.ordinal());
 			errorObj.put("message", "This package is not installed");
@@ -185,15 +193,14 @@ public class FileOpener2 extends CordovaPlugin {
 
 	private boolean _appIsInstalled(String packageId) {
 		PackageManager pm = cordova.getActivity().getPackageManager();
-        boolean appInstalled = false;
-        try {
-            pm.getPackageInfo(packageId, PackageManager.GET_ACTIVITIES);
-            appInstalled = true;
-        } catch (PackageManager.NameNotFoundException e) {
-            appInstalled = false;
-        }
-        return appInstalled;
+		boolean appInstalled = false;
+		try {
+			pm.getPackageInfo(packageId, PackageManager.GET_ACTIVITIES);
+			appInstalled = true;
+		} catch (PackageManager.NameNotFoundException e) {
+			appInstalled = false;
+		}
+		return appInstalled;
 	}
 
 }
-
